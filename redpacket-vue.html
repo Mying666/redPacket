@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>红包demo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    html, body, #app {
+      width: 100%;
+      height: 100%;
+    }
+    li {
+      list-style: none;
+    }
+    .box {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    .box ul {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-origin: center center;
+      perspective: 1000;
+      -webkit-perspective: 1000;
+      transform-style: preserve-3d;
+    }
+
+    @keyframes boxMove {
+      0% {
+        transform: translateY(0%);
+      }
+      100% {
+        transform: translateY(50%);
+      }
+    }
+    /* 红包反转 */
+    @keyframes rotate {
+      0% {
+        transform: translateX(-50%) rotateX(0deg) rotateY(0deg) translateY(-60%) scale(0.8);
+      }
+
+      45% {
+        transform: translateX(-50%) rotateX(0deg) rotateY(90deg) translateY(-60%) scale(0.8);
+      }
+
+      90% {
+        transform: translateX(-50%) rotateX(0deg) rotateY(200deg) translateY(-60%) scale(1);
+      }
+
+      100% {
+        transform: translateX(-50%) rotateX(0deg) rotateY(180deg) translateY(-60%) scale(1);
+      }
+    }
+
+    @keyframes opacity {
+      0% {
+        opacity: 0;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+
+    .box .item {
+      position: absolute;
+      top: 0%;
+      width: 300px;
+      height: 432px;
+      left: 50%;
+      transform-origin: center bottom;
+    }
+    .box .item .infoBox {
+      position: absolute;
+      /* display: none; */
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      transform: rotateY(180deg);
+      background: red;
+      opacity: 0;
+      animation: opacity 0.2s forwards;
+    }
+    .box .item img {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+  <script crossorigin="anonymous" integrity="sha512-BKbSR+cfyxLdMAsE0naLReFSLg8/pjbgfxHh/k/kUC82Hy7r6HtR5hLhobaln2gcTvzkyyehrdREdjpsQwy2Jw==" src="https://lib.baomitu.com/vue/2.6.12/vue.min.js"></script>
+</head>
+<body>
+  <div id="app">
+    <div class="box">
+      <ul :style="{animation: start ? 'boxMove linear 2s 2s forwards' : ''}">
+        <li
+          v-for="(item, i) in start ? listTotal : 1"
+          :key="i"
+          class="item"
+          :style="rotate(i)"
+          @click="clickPag"
+        >
+          <img src="img/WX20210125-102921.png" alt="">
+          <div v-if="i === 1 && start2s" class="infoBox">
+            中奖信息:XXXX
+
+            <button @click="clickPag">再来一次</button>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</body>
+<script>
+  window.onload = function () {
+    new Vue({
+      el: '#app',
+
+      data () {
+        return {
+          start: false,
+          start2s: false,
+          listTotal: 16,
+          startY: '-20%',
+          endY: '-60%'
+        }
+      },
+
+      created () {
+        this.setKeyframes()        
+      },
+
+      methods: {
+        clickPag () {
+          this.start2s = false
+          this.start = false
+          setTimeout(() => {
+            if (!this.start) {
+              this.start = true
+              setTimeout(() => {
+                this.start2s = true
+              }, 5200)
+            }
+          })
+        },
+        rotate (index) {
+          const angle = index === 0 ? index : (index - 1 ) * 360 / this.listTotal;
+          const time = index * 2 / this.listTotal;
+          const delay = index * 2 / this.listTotal;
+          let animationLine = `packetRotate${index} linear ${time}s forwards, translateY${index} linear 2s 2s forwards`
+          if ( index === 1 ) {
+            animationLine += `, rotate linear 0.6s 4.6s forwards`
+          } else {
+            animationLine += `, opacity linear 0.6s 4.6s reverse forwards`
+          }
+          return {
+            'z-index': -index,
+            transform: `translateX(-50%) rotate(-${angle}deg) translateY(${this.startY}) scale(0.2)`,
+            animation: this.start ? animationLine : ''
+          }
+        },
+
+        setKeyframes () {
+          for (let index = 0; index < this.listTotal; index++) {
+            let style = document.createElement('style');
+            style.setAttribute('type', 'text/css');
+            document.head.appendChild(style);
+            let sheet = style.sheet;
+            const startangle = (index - 1) * 360 / this.listTotal;
+            const endangle = index * 360 / this.listTotal;
+            const step = 360 / this.listTotal
+            // console.log(index, startangle, endangle, endangle + 360 - startangle);
+            sheet.insertRule(
+              `@keyframes packetRotate${index} {
+                from {
+                  transform: translateX(-50%) rotate(0deg) translateY(${this.startY}) scale(0.2);
+                }
+                to {
+                  transform: translateX(-50%) rotate(-${endangle}deg) translateY(${this.startY}) scale(0.2);
+                }
+              }`,
+            0);
+            sheet.insertRule(
+              `@keyframes translateY${index} {
+                from {
+                  transform: translateX(-50%) rotate(-${endangle}deg) translateY(${this.startY}) scale(0.2);
+                }
+                to {
+                  transform: translateX(-50%) rotate(-${endangle + 360 - step}deg) translateY(${this.endY}) scale(0.8);
+                }
+              }`,
+            0);
+          }
+        }
+      }
+    })
+  }
+</script>
+</html>
